@@ -49,7 +49,6 @@ struct lista
 };
 typedef struct lista Lista;
 
-
 void insere_resistor(Resistencia**Arvore, float valor_resistencia ,int quantidade)
 {
     if(*Arvore == NULL)
@@ -125,15 +124,12 @@ void inserir(Serie**Arvore, int numero_serie,float potencia_resistor,float valor
     }
 }
 
-
-
 void mostra_ordem_res(Resistencia**Arvore,int numero_serie,float potencia_resistor,FILE * fp)
 {
     if((*Arvore) != NULL)
     {
         mostra_ordem_res(&(*Arvore)->esquerda,numero_serie,potencia_resistor,fp);
         printf("\n   Série: E%d\tPotência:%5.2f\tResistencia:%9.1f\tQuantidade:%6.d",numero_serie, potencia_resistor, (*Arvore)->valor_resistencia, (*Arvore)->quantidade);
-        fprintf(fp,"%d\t %5.2f %12.1f %6.d\n",numero_serie, potencia_resistor, (*Arvore)->valor_resistencia, (*Arvore)->quantidade);
         mostra_ordem_res(&(*Arvore)->direita,numero_serie,potencia_resistor,fp);
     }
 }
@@ -148,17 +144,16 @@ void mostrar_ordem_pot(Potencia**Arvore, int numero_serie,FILE * fp)
     }
 }
 
-void mostra_tudo_ordem(Serie**Arvore)
+void mostra_tudo_ordem(Serie**Arvore, FILE *fp)
 {
-    FILE *fs;
-    fs = fopen(FILENAME,"w+");
+
     if((*Arvore) != NULL)
     {
-        mostra_tudo_ordem(&(*Arvore)->esquerda);
-        mostrar_ordem_pot(&(*Arvore)->potencia,(*Arvore)->numero_serie,fs);
-        mostra_tudo_ordem(&(*Arvore)->direita);
+        mostra_tudo_ordem(&(*Arvore)->esquerda,fp);
+        mostrar_ordem_pot(&(*Arvore)->potencia,(*Arvore)->numero_serie,fp);
+        mostra_tudo_ordem(&(*Arvore)->direita,fp);
     }
-    fclose(fs);
+
 }
 
 void busca_resitencia(Resistencia**Arvore,float valor_resistencia ,int quantidade)
@@ -203,83 +198,25 @@ void busca_serie(Serie**Arvore, int numero_serie,float potencia_resistor,float v
     }
 }
 
-
 void adiciona_res(Serie**Arvore)
 {
-    int serie=0,quantidade=0,i=0;
-    float resitencia=0,potencia=0,tolerancia=0;
-    char resposta;
+    int serie=0,quantidade=0;
+    float resitencia=0,potencia=0;
+    char op;
     printf("\n Entre com os valores de: \n\n Resistência:");
     scanf("%f",&resitencia);
     printf(" Série:");
     scanf("%d",&serie);
-    printf(" Tolerância:");
-    scanf("%f",&tolerancia);
     printf(" Potência:");
     scanf("%f",&potencia);
     printf(" Quantidade:");
     scanf("%d",&quantidade);
     fflush(stdin);
-    printf("\n Os Valores estão corretos? (S/N) \n Resis.= %8.1f  Serie.= E%.2d Toler. = %5.2f Poten.= %5.2f  Quant.= %.4d  \n",resitencia,serie,tolerancia,potencia,quantidade);
-    scanf("%c",&resposta);
-    if (resposta=='S' || resposta=='s')
-    {
-        if (serie==0 || serie==6 || serie==12 || serie==24 || serie==48 || serie==96 || serie==192)
-        {
-            if(serie==0 && tolerancia==0)
-            {
-                printf(" Informe pelo menos um dos itens abaixo:\n Série \n Tolerância \n");
-            }
+    printf("\n Confirmar os valores? (s/n) \n Resis.= %8.1f  Serie.= E%.2d Poten.= %5.2f  Quant.= %.4d  \n",resitencia,serie,potencia,quantidade);
+    scanf("%c",&op);
+    if (op=='S' || op=='s')
 
-            if(serie==192 && (!( tolerancia== 0.50 || tolerancia== 0.25 || tolerancia== 0.10 )))
-            {
-                if(serie==0 && tolerancia==0)
-            {
-                printf(" Informe pelo menos um dos itens abaixo:\n Série \n Tolerância \n");
-                i++;
-            }
-                printf(" Para resistores da série E192 é obrigatório informar a tolerância \n");
-                while(1)
-                {
-                    fflush(stdin);
-                    printf(" Tolerância:");
-                    scanf("%f",&tolerancia);
-
-                    if (tolerancia==0.5 || tolerancia==0.25 || tolerancia==0.10)
-                        break;
-                    else
-                        printf(" A tolerância informada é inválida, tente novamente\n");
-                }
-            }
-
-            if (serie==24)
-                tolerancia=5;
-            else if (serie==12)
-                tolerancia=10;
-            else if (serie==48)
-                tolerancia=2;
-            else if (serie==6)
-                tolerancia=20;
-            else if (serie==96)
-                tolerancia=1;
-            if (tolerancia==20)
-                serie=6;
-            else if (tolerancia==10)
-                serie=12;
-            else if (tolerancia==5)
-                serie=24;
-            else if (tolerancia==2)
-                serie=48;
-            else if (tolerancia==1)
-                serie=96;
-
-            if(i==0)
             inserir(&(*Arvore),serie,potencia,resitencia,quantidade);
-
-        }
-        else
-            printf(" Esta série não existe\n Este resistor não pode ser adicionado\n");
-    }
     else
         printf(" A adição do resistor foi cancelada\n");
 }
@@ -296,46 +233,7 @@ void adiciona_res(Serie**Arvore)
 
 void button_clicked_mostra_tudo(GtkWidget *widget, gpointer data)
 {
-    int n;
-    int serie=0,quantidade=0;
-    float resitencia=0,potencia=0;
-    FILE *fp;
-    Serie*Arvore;
-    Arvore = NULL;
-    fp = fopen(FILENAME,"r");
-    if (fp == NULL)
-    {
-        show_error();
-        //printf("Erro ao abrir arquivo %s.\n", FILENAME);
-        exit(1);
-    }
-    while(1)
-    {
-        n=fscanf(fp,"%d %f %f %d",&serie,&potencia,&resitencia,&quantidade);
-        if (n==EOF)
-            break;
-        inserir(&Arvore,serie,potencia,resitencia,quantidade);
-    }
-    mostra_tudo_ordem(&Arvore);
-    g_print("clicked\n");
-}
-
-
-void show_error(GtkWidget *widget, gpointer window) {
-
-  GtkWidget *dialog;
-  dialog = gtk_message_dialog_new(GTK_WINDOW(window),
-            GTK_DIALOG_DESTROY_WITH_PARENT,
-            GTK_MESSAGE_ERROR,
-            GTK_BUTTONS_OK,
-            "Error loading file");
-  gtk_window_set_title(GTK_WINDOW(dialog), "Error");
-  gtk_dialog_run(GTK_DIALOG(dialog));
-  gtk_widget_destroy(dialog);
-}
-
-int main (int argc, char *argv[])
-{
+    system("cls");
     int n;
     int serie=0,quantidade=0;
     float resitencia=0,potencia=0;
@@ -355,6 +253,94 @@ int main (int argc, char *argv[])
             break;
         inserir(&Arvore,serie,potencia,resitencia,quantidade);
     }
+    FILE *fs;
+    fs = fopen(FILENAME,"w+");
+    mostra_tudo_ordem(&Arvore, fs);
+    fclose(fs);
+    //g_print("clicked\n");
+}
+
+void button_clicked_adiciona(GtkWidget *widget, gpointer data)
+{
+    system("cls");
+    int n;
+    int serie=0,quantidade=0;
+    float resitencia=0,potencia=0;
+    FILE *fp;
+    Serie*Arvore;
+    Arvore = NULL;
+    fp = fopen(FILENAME,"r");
+    if (fp == NULL)
+    {
+        printf("Erro ao abrir arquivo %s.\n", FILENAME);
+        exit(1);
+    }
+    while(1)
+    {
+        n=fscanf(fp,"%d %f %f %d",&serie,&potencia,&resitencia,&quantidade);
+        if (n==EOF)
+            break;
+        inserir(&Arvore,serie,potencia,resitencia,quantidade);
+    }
+
+    adiciona_res(&Arvore);
+    FILE *fs;
+    fs = fopen(FILENAME,"w+");
+    printf("\n   Série\tPotência\tResistencia\tQuantidade\t");
+    mostra_tudo_ordem(&Arvore, fs);
+    fclose(fs);
+}
+
+void button_clicked_pesquisa(GtkWidget *widget, gpointer data)
+{
+    system("cls");
+    int n;
+    int serie=0,quantidade=0;
+    float resitencia=0,potencia=0;
+    FILE *fp;
+    Serie*Arvore;
+    Arvore = NULL;
+    fp = fopen(FILENAME,"r");
+    if (fp == NULL)
+    {
+        printf("Erro ao abrir arquivo %s.\n", FILENAME);
+        exit(1);
+    }
+    while(1)
+    {
+        n=fscanf(fp,"%d %f %f %d",&serie,&potencia,&resitencia,&quantidade);
+        if (n==EOF)
+            break;
+        inserir(&Arvore,serie,potencia,resitencia,quantidade);
+    }
+    printf("SISTEMA DE BUSCA\nDIGITE 0 (ZERO) NOS CAMPOS EM QUE NAO DESEJA ESPECIFICAR VALOR.");
+    printf("\n Entre com o valor de busca (resistencia):");
+    scanf("%f",&resitencia);
+    printf("\n Entre com o valor de busca (serie):");
+    scanf("%d",&serie);
+    printf("\n Entre com o valor de busca (potencia):");
+    scanf("%f",&potencia);
+    printf("\n Entre com o valor de busca (quantidade):");
+    scanf("%d",&quantidade);
+    busca_serie(&Arvore,serie,potencia,resitencia,quantidade);
+}
+
+void show_info(GtkWidget *widget, gpointer window) {
+
+  GtkWidget *dialog;
+  dialog = gtk_message_dialog_new(GTK_WINDOW(window),
+            GTK_DIALOG_DESTROY_WITH_PARENT,
+            GTK_MESSAGE_INFO,
+            GTK_BUTTONS_OK,
+            "Esta é a interface grafica do programa decontrole de resistores./nOs dados serão exibidos na janela de console.");
+  gtk_window_set_title(GTK_WINDOW(dialog), "Atenção!");
+  gtk_dialog_run(GTK_DIALOG(dialog));
+  gtk_widget_destroy(dialog);
+}
+
+int main (int argc, char *argv[])
+{
+    int i=0;
     GtkWidget *window;
     GtkWidget *vbox;
 
@@ -364,33 +350,50 @@ int main (int argc, char *argv[])
     GtkWidget *mostra_tudoMi;
     GtkWidget *quitMi;
     GtkWidget *pesquisaMi;
+    GtkWidget *adicionaMi;
+    //GtkWidget *label;
 
     gtk_init(&argc, &argv);
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-    gtk_window_set_default_size(GTK_WINDOW(window), 300, 200);
+    gtk_window_set_title(GTK_WINDOW(window), "No sleep");
+    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
+    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
+    gtk_window_set_default_size(GTK_WINDOW(window), 200, 200);
     gtk_window_set_title(GTK_WINDOW(window), "Simple menu");
 
+    //label = gtk_label_new("Bem vindo a interface grafica do catalago de Reistores!\nOs daods serao exibidos no console do windows");
+
+
+    //gtk_label_set_justify(GTK_LABEL(label), GTK_JUSTIFY_CENTER);
+    //gtk_container_add(GTK_CONTAINER(window), label);
     vbox = gtk_vbox_new(FALSE, 0);
     gtk_container_add(GTK_CONTAINER(window), vbox);
 
     menubar = gtk_menu_bar_new();
     fileMenu = gtk_menu_new();
 
+
+
     fileMi = gtk_menu_item_new_with_label("Arquivo");
     mostra_tudoMi = gtk_menu_item_new_with_label("Mostrar Estoque");
     pesquisaMi = gtk_menu_item_new_with_label("Pesquisar Estoque");
     quitMi = gtk_menu_item_new_with_label("Sair");
+    adicionaMi=gtk_menu_item_new_with_label("Adicionar Resistor");
 
     gtk_menu_item_set_submenu(GTK_MENU_ITEM(fileMi), fileMenu);
     gtk_menu_shell_append(GTK_MENU_SHELL(fileMenu), mostra_tudoMi);
     gtk_menu_shell_append(GTK_MENU_SHELL(fileMenu), pesquisaMi);
+    gtk_menu_shell_append(GTK_MENU_SHELL(fileMenu), adicionaMi);
     gtk_menu_shell_append(GTK_MENU_SHELL(fileMenu), quitMi);
     gtk_menu_shell_append(GTK_MENU_SHELL(menubar), fileMi);
     gtk_box_pack_start(GTK_BOX(vbox), menubar, FALSE, FALSE, 0);
 
-        g_signal_connect(G_OBJECT(window), "destroy",
+    g_signal_connect(G_OBJECT(window), "destroy",
+            G_CALLBACK(gtk_main_quit), NULL);
+
+    g_signal_connect(G_OBJECT(quitMi), "activate",
             G_CALLBACK(gtk_main_quit), NULL);
 
     g_signal_connect(G_OBJECT(quitMi), "activate",
@@ -398,6 +401,12 @@ int main (int argc, char *argv[])
 
     g_signal_connect(G_OBJECT(mostra_tudoMi), "activate",
             G_CALLBACK(button_clicked_mostra_tudo), NULL);
+
+    g_signal_connect(G_OBJECT(adicionaMi), "activate",
+            G_CALLBACK(button_clicked_adiciona), NULL);
+
+    g_signal_connect(G_OBJECT(pesquisaMi), "activate",
+            G_CALLBACK(button_clicked_pesquisa), NULL);
 
     gtk_widget_show_all(window);
 
