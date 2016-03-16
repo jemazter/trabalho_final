@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <gtk/gtk.h>
-
 #define FILENAME "resistores.txt"
 
 struct resistores
@@ -126,10 +125,13 @@ void inserir(Serie**Arvore, int numero_serie,float potencia_resistor,float valor
 
 void mostra_ordem_res(Resistencia**Arvore,int numero_serie,float potencia_resistor,FILE * fp)
 {
+
     if((*Arvore) != NULL)
     {
+        //printf("ok - 1");
         mostra_ordem_res(&(*Arvore)->esquerda,numero_serie,potencia_resistor,fp);
-        printf("\n   Série: E%d\tPotência:%5.2f\tResistencia:%9.1f\tQuantidade:%6.d",numero_serie, potencia_resistor, (*Arvore)->valor_resistencia, (*Arvore)->quantidade);
+        printf("\n E%d\t%5.2f\t\t%9.1f\t%6.d",numero_serie, potencia_resistor, (*Arvore)->valor_resistencia, (*Arvore)->quantidade);
+        fprintf(fp,"%d\t %5.2f %12.1f %6.d\n",numero_serie, potencia_resistor, (*Arvore)->valor_resistencia, (*Arvore)->quantidade);
         mostra_ordem_res(&(*Arvore)->direita,numero_serie,potencia_resistor,fp);
     }
 }
@@ -215,7 +217,6 @@ void adiciona_res(Serie**Arvore)
     printf("\n Confirmar os valores? (s/n) \n Resis.= %8.1f  Serie.= E%.2d Poten.= %5.2f  Quant.= %.4d  \n",resitencia,serie,potencia,quantidade);
     scanf("%c",&op);
     if (op=='S' || op=='s')
-
             inserir(&(*Arvore),serie,potencia,resitencia,quantidade);
     else
         printf(" A adição do resistor foi cancelada\n");
@@ -243,9 +244,11 @@ void button_clicked_mostra_tudo(GtkWidget *widget, gpointer data)
     fp = fopen(FILENAME,"r");
     if (fp == NULL)
     {
+        //printf("ok");
         printf("Erro ao abrir arquivo %s.\n", FILENAME);
         exit(1);
     }
+    //printf("ok1");
     while(1)
     {
         n=fscanf(fp,"%d %f %f %d",&serie,&potencia,&resitencia,&quantidade);
@@ -255,6 +258,9 @@ void button_clicked_mostra_tudo(GtkWidget *widget, gpointer data)
     }
     FILE *fs;
     fs = fopen(FILENAME,"w+");
+    printf("\n__________________________________________________\n");
+    printf("\nSérie\tPotência\tResistencia\tQuantidade");
+    printf("\n__________________________________________________\n");
     mostra_tudo_ordem(&Arvore, fs);
     fclose(fs);
     //g_print("clicked\n");
@@ -286,7 +292,9 @@ void button_clicked_adiciona(GtkWidget *widget, gpointer data)
     adiciona_res(&Arvore);
     FILE *fs;
     fs = fopen(FILENAME,"w+");
-    printf("\n   Série\tPotência\tResistencia\tQuantidade\t");
+    printf("\n__________________________________________________\n");
+    printf("\nSérie\tPotência\tResistencia\tQuantidade");
+    printf("\n__________________________________________________\n");
     mostra_tudo_ordem(&Arvore, fs);
     fclose(fs);
 }
@@ -357,17 +365,9 @@ int main (int argc, char *argv[])
 
     window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
-    gtk_window_set_title(GTK_WINDOW(window), "No sleep");
-    window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
-    gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
     gtk_window_set_default_size(GTK_WINDOW(window), 200, 200);
-    gtk_window_set_title(GTK_WINDOW(window), "Simple menu");
+    gtk_window_set_title(GTK_WINDOW(window), "Catalogo de Resistores");
 
-    //label = gtk_label_new("Bem vindo a interface grafica do catalago de Reistores!\nOs daods serao exibidos no console do windows");
-
-
-    //gtk_label_set_justify(GTK_LABEL(label), GTK_JUSTIFY_CENTER);
-    //gtk_container_add(GTK_CONTAINER(window), label);
     vbox = gtk_vbox_new(FALSE, 0);
     gtk_container_add(GTK_CONTAINER(window), vbox);
 
